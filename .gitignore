@@ -1,0 +1,4 @@
+*.sln
+__vm/
+*.filters
+*.vcxproj
