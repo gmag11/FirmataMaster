@@ -2,3 +2,6 @@
 __vm/
 *.filters
 *.vcxproj
+Libraries/
+Protocol/
+Test/

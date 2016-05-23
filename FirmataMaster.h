@@ -9,6 +9,14 @@
 	#include "WProgram.h"
 #endif
 
+class Arduino {
+	Arduino();
+	Arduino(Stream* stream);
+	Arduino(int serial, long bitrate = 9600);
+	void imprimir() {
+		Serial.begin(115200);
+	}
+};
 
 #endif
 

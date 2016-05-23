@@ -1,3 +1,4 @@
+#include "FirmataClient.h"
 #include "FirmataMaster.h"
 void setup()
 {
