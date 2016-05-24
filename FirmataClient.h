@@ -78,7 +78,7 @@ class FirmataClient
 	 int executeMultiByteCommand = 0;
 	 int multiByteChannel = 0;
 	 int storedInputData[MAX_DATA_BYTES];
-	 boolean parsingSysex;
+	 boolean parsingSysex = false;
 	 int sysexBytesRead;
 
 	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -86,7 +86,7 @@ class FirmataClient
 	 int analogInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	 int pinModes[MAX_PINS];
-	 int analogChannel[MAX_PINS];
+	 int analogChannel[MAX_ANALOG_PINS];
 	 int pinMode[MAX_PINS];
 
 	 int majorVersion = 0;
@@ -94,11 +94,19 @@ class FirmataClient
 
 	 Stream *firmataStream;
 
+	 void setDigitalInputs(int portNumber, int portData);
+	 void setAnalogInput(int pin, int value);
+	 void setVersion(int majorVersion, int minorVersion);
+	 void processSysexMessage();
+
  public:
 	FirmataClient(Stream &stream);
-	void init();
+	void begin();
+	int digitalRead(int pin);
+	void digitalWrite(int pin, int value);
 	void queryCapabilities();
 	void queryAnalogMapping();
+	void processInput(int inputData);
 };
 
 //extern FirmataClientClass FirmataClient;

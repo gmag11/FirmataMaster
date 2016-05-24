@@ -1,5 +1,5 @@
 #include "FirmataClient.h"
-#include "FirmataMaster.h"
+#include "FirmataArduino.h"
 void setup()
 {
 

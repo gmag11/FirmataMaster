@@ -1,7 +1,7 @@
-// FirmataMaster.h
+// Arduino.h
 
-#ifndef _FIRMATAMASTER_h
-#define _FIRMATAMASTER_h
+#ifndef _FIRMATA_ARDUINO_h
+#define _FIRMATA_ARDUINO_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "arduino.h"
@@ -12,7 +12,7 @@
 class Arduino {
 	Arduino();
 	Arduino(Stream* stream);
-	Arduino(int serial, long bitrate = 9600);
+	Arduino(int serial, long bitrate = 57600);
 	void imprimir() {
 		Serial.begin(115200);
 	}
