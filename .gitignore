@@ -1,0 +1,8 @@
+Debug/
+*.sln
+Libraries/
+Protocol/
+Test/
+__vm/
+*.filters
+*.vcxproj
