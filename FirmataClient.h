@@ -87,7 +87,7 @@ class FirmataClient
 
 	 int pinModes[MAX_PINS];
 	 int analogChannel[MAX_ANALOG_PINS];
-	 int pinMode[MAX_PINS];
+	 //int pinMode[MAX_PINS];
 
 	 int majorVersion = 0;
 	 int minorVersion = 0;
@@ -98,15 +98,19 @@ class FirmataClient
 	 void setAnalogInput(int pin, int value);
 	 void setVersion(int majorVersion, int minorVersion);
 	 void processSysexMessage();
+	 void processInput(int inputData);
+
+	 void queryCapabilities();
+	 void queryAnalogMapping();
 
  public:
-	FirmataClient(Stream &stream);
-	void begin();
+	FirmataClient();
+	void begin(Stream &stream);
 	int digitalRead(int pin);
 	void digitalWrite(int pin, int value);
-	void queryCapabilities();
-	void queryAnalogMapping();
-	void processInput(int inputData);
+	void pinMode(int pin, int mode);
+	
+	void handleData();
 };
 
 //extern FirmataClientClass FirmataClient;

@@ -4,13 +4,14 @@
 
 #include "FirmataClient.h"
 
-FirmataClient::FirmataClient(Stream &stream)
+FirmataClient::FirmataClient()
 {
-	firmataStream = &stream;
+	
 }
 
-void FirmataClient::begin()
+void FirmataClient::begin(Stream &stream)
 {
+	firmataStream = &stream;
 	// enable all ports; firmware should ignore non-existent ones
 	for (int i = 0; i < MAX_PORTS; i++) {
 		firmataStream->write(REPORT_DIGITAL | i);
@@ -56,6 +57,13 @@ void FirmataClient::digitalWrite(int pin, int value) {
 	firmataStream->write(DIGITAL_MESSAGE | portNumber);
 	firmataStream->write(digitalOutputData[portNumber] & 0x7F);
 	firmataStream->write(digitalOutputData[portNumber] >> 7);
+}
+
+void FirmataClient::pinMode(int pin, int mode)
+{
+	firmataStream->write(SET_PIN_MODE);
+	firmataStream->write(pin);
+	firmataStream->write(mode);
 }
 
 void FirmataClient::setDigitalInputs(int portNumber, int portData) {
@@ -142,6 +150,19 @@ void FirmataClient::processInput(int inputData) {
 				break;
 		}
 	}
+}
+
+void FirmataClient::handleData()
+{
+	int data = -1;
+
+	if (firmataStream->available() > 0) {
+		data = firmataStream->read();
+		if (data != -1) {
+			processInput(data);
+		}
+	}
+
 }
 
 void FirmataClient::processSysexMessage() {
