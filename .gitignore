@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Debug/
 *.sln
 Libraries/
@@ -6,3 +7,13 @@ Test/
 __vm/
 *.filters
 *.vcxproj
+=======
+*.sln
+__vm/
+*.filters
+*.vcxproj
+Libraries/
+Protocol/
+Test/
+Debug/
+>>>>>>> dev
