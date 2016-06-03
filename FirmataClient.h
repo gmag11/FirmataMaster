@@ -9,6 +9,11 @@
 	#include "WProgram.h"
 #endif
 
+#define DEBUG_FIRMATA_MASTER
+#ifdef DEBUG_FIRMATA_MASTER
+#define DBG_PORT Serial
+#endif
+
 // pin modes definition
 #define INPUT	0 //Constant to set a pin to input mode (in a call to pinMode())
 #define OUTPUT	1 //Constant to set a pin to output mode (in a call to pinMode())
@@ -71,7 +76,7 @@
 #define SYSEX_REALTIME			0x7F // MIDI Reserved for realtime messages
 
 
-class FirmataClient
+class FirmataClientClass
 {
  protected:
 	 int waitForData = 0;
@@ -104,7 +109,7 @@ class FirmataClient
 	 void queryAnalogMapping();
 
  public:
-	FirmataClient();
+	FirmataClientClass();
 	void begin(Stream &stream);
 	int digitalRead(int pin);
 	void digitalWrite(int pin, int value);
@@ -113,7 +118,7 @@ class FirmataClient
 	void handleData();
 };
 
-//extern FirmataClientClass FirmataClient;
+extern FirmataClientClass FirmataClient;
 
 #endif
 

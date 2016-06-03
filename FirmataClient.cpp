@@ -4,12 +4,14 @@
 
 #include "FirmataClient.h"
 
-FirmataClient::FirmataClient()
+//#define DO_REPORT_ANALOG
+
+FirmataClientClass::FirmataClientClass()
 {
 	
 }
 
-void FirmataClient::begin(Stream &stream)
+void FirmataClientClass::begin(Stream &stream)
 {
 	firmataStream = &stream;
 	// enable all ports; firmware should ignore non-existent ones
@@ -19,12 +21,15 @@ void FirmataClient::begin(Stream &stream)
 	}
 	
 	queryCapabilities();
+#ifdef DO_REPORT_ANALOG
 	queryAnalogMapping();
+
 
 	for (int i = 0; i < MAX_ANALOG_PINS; i++) {
 		firmataStream->write(REPORT_ANALOG | i);
 		firmataStream->write(1);
 	}
+#endif // DO_REPORT_ANALOG
 
 }
 
@@ -34,8 +39,12 @@ void FirmataClient::begin(Stream &stream)
 * @param pin the digital pin whose value should be returned (from 2 to 13,
 * since pins 0 and 1 are used for serial communication)
 */
-int FirmataClient::digitalRead(int pin) {
-	return (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
+int FirmataClientClass::digitalRead(int pin) {
+	int value = (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.printf("-DigitalRead: pin %d value %d\n", pin, value);
+#endif // DEBUG_FIRMATA_MASTER	
+	return value;
 }
 
 /**
@@ -46,7 +55,10 @@ int FirmataClient::digitalRead(int pin) {
 * @param value the value to write: Arduino.LOW (0 volts) or Arduino.HIGH
 * (5 volts)
 */
-void FirmataClient::digitalWrite(int pin, int value) {
+void FirmataClientClass::digitalWrite(int pin, int value) {
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.printf("-Digital Write: pin %d value %d\n", pin, value);
+#endif // DEBUG_FIRMATA_MASTER	
 	int portNumber = (pin >> 3) & 0x0F;
 
 	if (value == 0)
@@ -59,44 +71,61 @@ void FirmataClient::digitalWrite(int pin, int value) {
 	firmataStream->write(digitalOutputData[portNumber] >> 7);
 }
 
-void FirmataClient::pinMode(int pin, int mode)
+void FirmataClientClass::pinMode(int pin, int mode)
 {
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.printf("-Pin mode: pin %d mode %d\n", pin, mode);
+#endif // DEBUG_FIRMATA_MASTER
 	firmataStream->write(SET_PIN_MODE);
 	firmataStream->write(pin);
 	firmataStream->write(mode);
 }
 
-void FirmataClient::setDigitalInputs(int portNumber, int portData) {
-	//System.out.println("digital port " + portNumber + " is " + portData);
+void FirmataClientClass::setDigitalInputs(int portNumber, int portData) {
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.printf("-Set digital inputs: port %d data %x\n", portNumber, portData);
+#endif // DEBUG_FIRMATA_MASTER
 	digitalInputData[portNumber] = portData;
 }
 
-void FirmataClient::setAnalogInput(int pin, int value) {
-	//System.out.println("analog pin " + pin + " is " + value);
+void FirmataClientClass::setAnalogInput(int pin, int value) {
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.printf("-Set analog inputs: pin %d value %d\n", pin, value);
+#endif // DEBUG_FIRMATA_MASTER	
 	analogInputData[pin] = value;
 }
 
-void FirmataClient::setVersion(int majorVersion, int minorVersion) {
-	//System.out.println("version is " + majorVersion + "." + minorVersion);
+void FirmataClientClass::setVersion(int majorVersion, int minorVersion) {
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.printf("Firmata Version: %d %d\n", majorVersion, minorVersion);
+
+#endif // DEBUG_FIRMATA_MASTER
 	this->majorVersion = majorVersion;
 	this->minorVersion = minorVersion;
 }
 
-void FirmataClient::queryCapabilities() {
+void FirmataClientClass::queryCapabilities() {
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.print("Query capabilities\n");
+#endif // DEBUG_FIRMATA_MASTER
 	firmataStream->write(START_SYSEX);
 	firmataStream->write(CAPABILITY_QUERY);
 	firmataStream->write(END_SYSEX);
 }
 
-void FirmataClient::queryAnalogMapping() {
+void FirmataClientClass::queryAnalogMapping() {
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.print("Query analog mapping\n");
+#endif // DEBUG_FIRMATA_MASTER	
 	firmataStream->write(START_SYSEX);
 	firmataStream->write(ANALOG_MAPPING_QUERY);
 	firmataStream->write(END_SYSEX);
 }
 
-void FirmataClient::processInput(int inputData) {
+void FirmataClientClass::processInput(int inputData) {
 	int command;
 
+	//DBG_PORT.printf("Input data: %x\n", inputData);
 	//    System.out.print(">" + inputData + " ");
 
 	if (parsingSysex) {
@@ -117,12 +146,21 @@ void FirmataClient::processInput(int inputData) {
 			//we got everything
 			switch (executeMultiByteCommand) {
 			case DIGITAL_MESSAGE:
+#ifdef DEBUG_FIRMATA_MASTER
+				DBG_PORT.println("DIGITAL MESSAGE");
+#endif // DEBUG_FIRMATA_MASTER	
 				setDigitalInputs(multiByteChannel, (storedInputData[0] << 7) + storedInputData[1]);
 				break;
 			case ANALOG_MESSAGE:
+#ifdef DEBUG_FIRMATA_MASTER
+				DBG_PORT.println("ANALOG MESSAGE");
+#endif // DEBUG_FIRMATA_MASTER	
 				setAnalogInput(multiByteChannel, (storedInputData[0] << 7) + storedInputData[1]);
 				break;
 			case REPORT_VERSION:
+#ifdef DEBUG_FIRMATA_MASTER
+				DBG_PORT.println("REPORT VERSION");
+#endif // DEBUG_FIRMATA_MASTER
 				setVersion(storedInputData[1], storedInputData[0]);
 				break;
 			}
@@ -137,6 +175,9 @@ void FirmataClient::processInput(int inputData) {
 			command = inputData;
 			// commands in the 0xF* range don't use channel data
 		}
+#ifdef DEBUG_FIRMATA_MASTER
+		DBG_PORT.printf("Firmata command: %X %X\n", command, multiByteChannel);
+#endif // DEBUG_FIRMATA_MASTER
 		switch (command) {
 			case DIGITAL_MESSAGE:
 			case ANALOG_MESSAGE:
@@ -152,12 +193,16 @@ void FirmataClient::processInput(int inputData) {
 	}
 }
 
-void FirmataClient::handleData()
+void FirmataClientClass::handleData()
 {
 	int data = -1;
 
 	if (firmataStream->available() > 0) {
 		data = firmataStream->read();
+//#ifdef DEBUG_FIRMATA_MASTER
+		String temp = (data < 0x10 ? " 0x0" : " 0x");
+		Serial1.printf("%s%X", temp.c_str(), data);
+//#endif // DEBUG_FIRMATA_MASTER	
 		if (data != -1) {
 			processInput(data);
 		}
@@ -165,10 +210,13 @@ void FirmataClient::handleData()
 
 }
 
-void FirmataClient::processSysexMessage() {
+void FirmataClientClass::processSysexMessage() {
 	//    System.out.print("[ ");
 	//    for (int i = 0; i < storedInputData.length; i++) System.out.print(storedInputData[i] + " ");
 	//    System.out.println("]");
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.printf("Process SysEx: SE Command: %X\n", storedInputData[0]);
+#endif // DEBUG_FIRMATA_MASTER
 	switch (storedInputData[0]) { //first byte in buffer is command
       case CAPABILITY_RESPONSE:
         for (int pin = 0; pin < MAX_PINS; pin++) {
@@ -210,5 +258,5 @@ void FirmataClient::processSysexMessage() {
 }
 
 
-//FirmataClient FirmataClient;
+FirmataClientClass FirmataClient;
 

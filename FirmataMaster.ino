@@ -2,26 +2,29 @@
 #include "FirmataClient.h"
 //#include "FirmataArduino.h"
 
-FirmataClient firmata;
+
 SoftwareSerial sserial(12,13);
 
 void setup()
 {
 	Serial.begin(115200);
+	Serial1.begin(115200);
 	sserial.begin(57600);
-	firmata.begin(sserial);
-	firmata.pinMode(13, OUTPUT);
+	delay(2000);
+	FirmataClient.begin(sserial);
+	FirmataClient.pinMode(13, OUTPUT);
   /* add setup code here */
 
 }
 
 void loop()
 {
-	firmata.digitalWrite(13, HIGH);
-	delay(500);
-	firmata.digitalWrite(13, LOW);
-	delay(500);
-	firmata.handleData();
+	/*FirmataClient.digitalWrite(13, HIGH);
+	delay(2000);
+	FirmataClient.digitalWrite(13, LOW);
+	delay(2000);*/
+	FirmataClient.handleData();
+	delay(0);
   /* add main program code here */
 
 }
