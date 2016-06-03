@@ -95,6 +95,17 @@ void FirmataClientClass::setAnalogInput(int pin, int value) {
 	analogInputData[pin] = value;
 }
 
+void FirmataClientClass::setSamplingInterval(int interval) {
+#ifdef DEBUG_FIRMATA_MASTER
+	DBG_PORT.printf("Set sampling interval at %d\n", interval);
+#endif // DEBUG_FIRMATA_MASTER
+	firmataStream->write(START_SYSEX);
+	firmataStream->write(SAMPLING_INTERVAL);
+	firmataStream->write(interval & 0xFF);
+	firmataStream->write((interval >> 8) & 0xFF);
+	firmataStream->write(END_SYSEX);
+}
+
 void FirmataClientClass::setVersion(int majorVersion, int minorVersion) {
 #ifdef DEBUG_FIRMATA_MASTER
 	DBG_PORT.printf("Firmata Version: %d %d\n", majorVersion, minorVersion);

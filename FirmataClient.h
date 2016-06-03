@@ -115,6 +115,7 @@ class FirmataClientClass
 	int digitalRead(int pin);
 	void digitalWrite(int pin, int value);
 	void pinMode(int pin, int mode);
+	void setSamplingInterval(int interval);
 	
 	void handleData();
 };
