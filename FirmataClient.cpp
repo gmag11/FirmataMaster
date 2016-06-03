@@ -4,7 +4,7 @@
 
 #include "FirmataClient.h"
 
-//#define DO_REPORT_ANALOG
+#define DO_REPORT_ANALOG
 
 FirmataClientClass::FirmataClientClass()
 {
@@ -122,14 +122,12 @@ void FirmataClientClass::queryAnalogMapping() {
 	firmataStream->write(END_SYSEX);
 }
 
-void FirmataClientClass::processInput(int inputData) {
-	int command;
-
-	//DBG_PORT.printf("Input data: %x\n", inputData);
-	//    System.out.print(">" + inputData + " ");
+void FirmataClientClass::processInput(byte inputData) {
+	byte command;
 
 	if (parsingSysex) {
 		if (inputData == END_SYSEX) {
+			Serial1.print("->");
 			parsingSysex = false;
 			processSysexMessage();
 		}
@@ -144,6 +142,7 @@ void FirmataClientClass::processInput(int inputData) {
 
 		if (executeMultiByteCommand != 0 && waitForData == 0) {
 			//we got everything
+			Serial1.print(">");
 			switch (executeMultiByteCommand) {
 			case DIGITAL_MESSAGE:
 #ifdef DEBUG_FIRMATA_MASTER
@@ -182,10 +181,12 @@ void FirmataClientClass::processInput(int inputData) {
 			case DIGITAL_MESSAGE:
 			case ANALOG_MESSAGE:
 			case REPORT_VERSION:
+				Serial1.print("<");
 				waitForData = 2;
 				executeMultiByteCommand = command;
 				break;
 			case START_SYSEX:
+				Serial1.print("<-");
 				parsingSysex = true;
 				sysexBytesRead = 0;
 				break;
@@ -254,6 +255,12 @@ void FirmataClientClass::processSysexMessage() {
 			}
 		}
 		break;
+	case REPORT_FIRMWARE:
+		setVersion(storedInputData[1], storedInputData[2]);
+		for (int i = 3; i < sysexBytesRead; i++) {
+			firmware.concat(storedInputData[i]);
+		}
+		DBG_PORT.printf("Firmware: %s", firmware.c_str());
 	}
 }
 

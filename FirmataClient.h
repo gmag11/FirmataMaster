@@ -96,6 +96,7 @@ class FirmataClientClass
 
 	 int majorVersion = 0;
 	 int minorVersion = 0;
+	 String firmware = "";
 
 	 Stream *firmataStream;
 
@@ -103,7 +104,7 @@ class FirmataClientClass
 	 void setAnalogInput(int pin, int value);
 	 void setVersion(int majorVersion, int minorVersion);
 	 void processSysexMessage();
-	 void processInput(int inputData);
+	 void processInput(byte inputData);
 
 	 void queryCapabilities();
 	 void queryAnalogMapping();
