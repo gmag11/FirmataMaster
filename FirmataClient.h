@@ -9,10 +9,20 @@
 	#include "WProgram.h"
 #endif
 
+#include <Ticker.h>
+
 #define DEBUG_FIRMATA_MASTER
 #ifdef DEBUG_FIRMATA_MASTER
-#define DBG_PORT Serial
+//#define DEBUG_FIRMATA
+//#define DEBUG_FIRMATA_PROTOCOL
+//#define DEBUG_ANALOG
+//#define DEBUG_DIGITAL
+//#define DEBUG_PINS
+//#define DEBUG_SYSEX
+//#define DEBUG_PROTOCOL_BYTES
 #endif
+#define DBG_PORT Serial1
+
 
 // pin modes definition
 #define INPUT	0 //Constant to set a pin to input mode (in a call to pinMode())
@@ -22,11 +32,12 @@
 #define SERVO	4 //Constant to set a pin to servo mode (in a call to pinMode())
 #define SHIFT	5 //Constant to set a pin to shiftIn/shiftOut mode (in a call to pinMode())
 #define I2C		6 //Constant to set a pin to I2C mode (in a call to pinMode())
-#define ONEWIRE 7
-#define STEPPER 8
-#define ENCODER 9
-#define SERIAL	10
-#define PULLUP	11
+#define ONEWIRE 7 //Constant to set a pin to OneWire mode (in a call to pinMode())
+#define STEPPER 8 //Constant to set a pin to Stepper Motor mode (in a call to pinMode())
+#define ENCODER 9 //Constant to set a pin to Rotary Encoder mode (in a call to pinMode())
+#define SERIAL	10 //Constant to set a pin to Serial mode (in a call to pinMode())
+#define PULLUP	11 //Constant to set a pin to pullup output mode (in a call to pinMode())
+#define NUMBER_OF_MODES 12 //Number of defined modes to reserve memory in capability arrays.
 
 //Digital mode states
 #define HIGH	1 // Constant to write a high value to a pin (in a call to digitalWrite())
@@ -75,10 +86,22 @@
 #define SYSEX_NON_REALTIME		0x7E // MIDI Reserved for non-realtime messages
 #define SYSEX_REALTIME			0x7F // MIDI Reserved for realtime messages
 
+typedef struct {
+	bool supported;
+	int resolution;
+} pinCapability;
+
+typedef struct {
+	//int pinNumber;
+	pinCapability capability[NUMBER_OF_MODES];
+	int analogChannel;
+} pin;
 
 class FirmataClientClass
 {
  protected:
+	 pin pins[MAX_PINS];
+
 	 int waitForData = 0;
 	 int executeMultiByteCommand = 0;
 	 int multiByteChannel = 0;
@@ -97,27 +120,36 @@ class FirmataClientClass
 	 int majorVersion = 0;
 	 int minorVersion = 0;
 	 String firmware = "";
-
+	 
 	 Stream *firmataStream;
 
 	 void setDigitalInputs(int portNumber, int portData);
 	 void setAnalogInput(int pin, int value);
 	 void setVersion(int majorVersion, int minorVersion);
 	 void processSysexMessage();
-	 void processInput(byte inputData);
+	 void processInput(int inputData);
 
 	 void queryCapabilities();
 	 void queryAnalogMapping();
+	 
+	 Ticker tk;
 
  public:
+	bool checkingStream = false;
+
 	FirmataClientClass();
 	void begin(Stream &stream);
 	int digitalRead(int pin);
+	bool getStreamAvailable();
+	//static void checkStream(FirmataClientClass firmata);
 	void digitalWrite(int pin, int value);
 	void pinMode(int pin, int mode);
 	void setSamplingInterval(int interval);
 	
 	void handleData();
+
+	pin* getStoredCapabilities();
+	void printCapabilities();
 };
 
 extern FirmataClientClass FirmataClient;

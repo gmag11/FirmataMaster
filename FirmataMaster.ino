@@ -1,17 +1,21 @@
+//#include <TimeAlarms.h>
+#include <Ticker.h>
 #include <SoftwareSerial.h>
 #include "FirmataClient.h"
+
 //#include "FirmataArduino.h"
 
 
-SoftwareSerial sserial(12,13);
+//SoftwareSerial sserial(12,13);
 
 void setup()
 {
-	Serial.begin(115200);
+	Serial.begin(57600);
 	Serial1.begin(115200);
-	sserial.begin(57600);
+	//sserial.begin(57600);
 	delay(2000);
-	FirmataClient.begin(sserial);
+
+	FirmataClient.begin(Serial);
 	FirmataClient.pinMode(13, OUTPUT);
   /* add setup code here */
 
@@ -19,12 +23,10 @@ void setup()
 
 void loop()
 {
-	/*FirmataClient.digitalWrite(13, HIGH);
+	FirmataClient.digitalWrite(13, HIGH);
 	delay(2000);
 	FirmataClient.digitalWrite(13, LOW);
-	delay(2000);*/
-	FirmataClient.handleData();
-	delay(0);
+	delay(2000);
   /* add main program code here */
 
 }
