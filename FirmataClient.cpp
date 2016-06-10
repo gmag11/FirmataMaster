@@ -7,16 +7,12 @@
 #define DO_REPORT_ANALOG
 
 static void checkStream(FirmataClientClass* firmata);
+#ifdef DEBUG_CAPABILITIES
+static String mode2string(int mode);
+#endif // DEBUG_CAPABILITIES
 
 FirmataClientClass::FirmataClientClass()
 {
-	for (int i = 0; i < MAX_PINS; i++) {
-		pins[i].analogChannel = 127;
-		for (int j = 0; j < NUMBER_OF_MODES; j++) {
-			pins[i].capability[j].supported = false;
-			pins[i].capability[j].resolution = 0;
-		}
-	}
 }
 
 void FirmataClientClass::begin(Stream &stream)
@@ -164,14 +160,76 @@ void FirmataClientClass::queryAnalogMapping() {
 	firmataStream->write(END_SYSEX);
 }
 
+#ifdef DEBUG_CAPABILITIES
 pin * FirmataClientClass::getStoredCapabilities()
 {
-	return pins;
+	if (gotCapabilities) {
+		return pins;
+	}
+	else return NULL;
 }
 
 void FirmataClientClass::printCapabilities()
 {
+	DBG_PORT.println(__PRETTY_FUNCTION__);
+	for (int i = 0; i < MAX_PINS; i++) {
+		if (pins[i].available){
+			DBG_PORT.printf("Pin %d modes\n", i);
+			for (int j = 0; j < NUMBER_OF_MODES; j++) {
+				if (pins[i].capability[j].supported) {
+					DBG_PORT.printf("  Mode: %s, resolution: %d", mode2string(j).c_str(), pins[i].capability[j].resolution);
+					if (j == ANALOG) {
+						DBG_PORT.printf(", analog channel: %d\n", pins[i].analogChannel);
+					}	else DBG_PORT.println();
+				}
+			}
+		}
+	}
 }
+
+static String mode2string(int mode) {
+	switch (mode) {
+		case INPUT:
+			return ("Input");
+			break;
+		case OUTPUT:
+			return ("Output");
+			break;
+		case ANALOG:
+			return ("Analog");
+			break;
+		case PWM:
+			return ("PWM");
+			break;
+		case SERVO:
+			return ("Servo");
+			break;
+		case SHIFT:
+			return ("Shift");
+			break;
+		case I2C:
+			return ("I2C");
+			break;
+		case ONEWIRE:
+			return ("OneWire");
+			break;
+		case STEPPER:
+			return ("Stepper");
+			break;
+		case ENCODER:
+			return ("Encoder");
+			break;
+		case SERIAL:
+			return ("Serial");
+			break;
+		case PULLUP:
+			return ("PULLUP");
+			break;
+		default:
+			return ("Mode not implemented");
+	}
+}
+#endif // DEBUG_CAPABILITIES
 
 void FirmataClientClass::processInput(int inputData) {
 	int command;
@@ -268,17 +326,33 @@ void FirmataClientClass::processSysexMessage() {
 	switch (storedInputData[0]) { //first byte in buffer is command
       case CAPABILITY_RESPONSE:
 #ifdef DEBUG_SYSEX
-		  DBG_PORT.print("Capability response:\n");
+		  DBG_PORT.print("Capability response\n");
 #endif // DEBUG_SYSEX
-        for (int pin = 0; pin < MAX_PINS; pin++) {
+#ifdef DEBUG_CAPABILITIES
+		  gotCapabilities = true;
+#endif // DEBUG_CAPABILITIES
+		  for (int pin = 0; pin < MAX_PINS; pin++) {
           pinModes[pin] = 0;
+#ifdef DEBUG_CAPABILITIES
+		  pins[pin].available = false;
+#endif //DEBUG_CAPABILITIES
         }
         for (int i = 1, pin = 0; pin < MAX_PINS; pin++) {
           for (;;) {
             int val = storedInputData[i++];
             if (val == 127) break;
             pinModes[pin] |= (1 << val);
-            i++; // skip mode resolution for now
+#ifdef DEBUG_CAPABILITIES
+			pins[pin].available = true;
+			if (val >= 0 && val < NUMBER_OF_MODES) {
+				pins[pin].capability[val].supported = true;
+			}
+			int res = storedInputData[i++];
+			pins[pin].capability[val].resolution = res;
+#else
+			i++; // skip mode resolution for now
+#endif // DEBUG_CAPABILITIES
+			//i++; 
           }
           if (i == sysexBytesRead) break;
         }
@@ -295,12 +369,22 @@ void FirmataClientClass::processSysexMessage() {
         break;
 	case ANALOG_MAPPING_RESPONSE:
 #ifdef DEBUG_SYSEX
-		DBG_PORT.print("Analog mapping response:\n");
+		DBG_PORT.print("Analog mapping response\n");
 #endif // DEBUG_SYSEX
-		for (int pin = 0; pin < MAX_ANALOG_PINS; pin++)
+		for (int pin = 0; pin < MAX_ANALOG_PINS; pin++) {
 			analogChannel[pin] = 127;
-		for (int i = 1; i < sysexBytesRead; i++)
-			analogChannel[i - 1] = storedInputData[i];
+#ifdef DEBUG_CAPABILITIES
+			pins[pin].analogChannel = 127; 
+#endif //DEBUG_CAPABILITIES
+		}
+		for (int i = 1; i < sysexBytesRead; i++) {
+			int val = storedInputData[i];
+			analogChannel[i - 1] = val;
+#ifdef DEBUG_CAPABILITIES
+			if (val < 127)
+				pins[i-1].analogChannel = val;
+#endif // DEBUG_CAPABILITIES
+		}
 		/*for (int pin = 0; pin < MAX_ANALOG_PINS; pin++) {
 			if (analogChannel[pin] != 127) {
 				firmataStream->write(REPORT_ANALOG | analogChannel[pin]);

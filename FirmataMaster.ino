@@ -23,6 +23,9 @@ void setup()
 
 void loop()
 {
+#ifdef DEBUG_CAPABILITIES
+	FirmataClient.printCapabilities();
+#endif // DEBUG_CAPABILITIES
 	FirmataClient.digitalWrite(13, HIGH);
 	delay(2000);
 	FirmataClient.digitalWrite(13, LOW);

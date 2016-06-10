@@ -16,10 +16,11 @@
 //#define DEBUG_FIRMATA
 //#define DEBUG_FIRMATA_PROTOCOL
 //#define DEBUG_ANALOG
-//#define DEBUG_DIGITAL
-//#define DEBUG_PINS
-//#define DEBUG_SYSEX
+#define DEBUG_DIGITAL
+#define DEBUG_PINS
+#define DEBUG_SYSEX
 //#define DEBUG_PROTOCOL_BYTES
+//#define DEBUG_CAPABILITIES //Show pin capabilities over DBG_PORT
 #endif
 #define DBG_PORT Serial1
 
@@ -43,12 +44,13 @@
 #define HIGH	1 // Constant to write a high value to a pin (in a call to digitalWrite())
 #define LOW		0 // Constant to write a low value to a pin (in a call to digitalWrite())
 
+// Firmata basic definitions
 #define MAX_DATA_BYTES 4096
 #define MAX_PINS 128
 #define MAX_PORTS 16
 #define MAX_ANALOG_PINS 16
 
-
+// Command codes (non sysex)
 #define DIGITAL_MESSAGE	0x90 // send data for a digital port
 #define ANALOG_MESSAGE	0xE0 // send data for an analog pin (or PWM)
 #define REPORT_ANALOG	0xC0 // enable analog input by pin #
@@ -86,28 +88,36 @@
 #define SYSEX_NON_REALTIME		0x7E // MIDI Reserved for non-realtime messages
 #define SYSEX_REALTIME			0x7F // MIDI Reserved for realtime messages
 
+#ifdef DEBUG_CAPABILITIES
+
+// Represents one pin single capability
 typedef struct {
-	bool supported;
-	int resolution;
+	bool supported = false; // Is this mode supported?
+	int resolution = 0; // Numeric resolution
 } pinCapability;
 
+// Describes capabilities of a single pin 
 typedef struct {
-	//int pinNumber;
-	pinCapability capability[NUMBER_OF_MODES];
-	int analogChannel;
+	bool available = false; // Is this pin available?
+	pinCapability capability[NUMBER_OF_MODES]; // List of all possible capabilities
+	int analogChannel = 127; // Analog channel. Only applicable to analog capable pins
 } pin;
+#endif // DEBUG_CAPABILITIES
 
 class FirmataClientClass
 {
  protected:
-	 pin pins[MAX_PINS];
+#ifdef DEBUG_CAPABILITIES
+	 bool gotCapabilities = false; // Client has received info about Firmata board cababilities
+	 pin pins[MAX_PINS]; // Pins description store
+#endif // DEBUG_CAPABILITIES
 
-	 int waitForData = 0;
-	 int executeMultiByteCommand = 0;
-	 int multiByteChannel = 0;
-	 int storedInputData[MAX_DATA_BYTES];
-	 boolean parsingSysex = false;
-	 int sysexBytesRead;
+	 int waitForData = 0; // Is client waiting for more data?
+	 int executeMultiByteCommand = 0; // Number of current command remaining bytes to receive
+	 int multiByteChannel = 0; 
+	 int storedInputData[MAX_DATA_BYTES]; // Command buffer
+	 boolean parsingSysex = false; // Command being received is sysex
+	 int sysexBytesRead; // Number of bytes read on current sysex command
 
 	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	 int digitalInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -148,8 +158,10 @@ class FirmataClientClass
 	
 	void handleData();
 
+#ifdef DEBUG_CAPABILITIES
 	pin* getStoredCapabilities();
 	void printCapabilities();
+#endif // DEBUG_CAPABILITIES
 };
 
 extern FirmataClientClass FirmataClient;
