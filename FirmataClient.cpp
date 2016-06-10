@@ -177,7 +177,7 @@ void FirmataClientClass::printCapabilities()
 			DBG_PORT.printf("Pin %d modes\n", i);
 			for (int j = 0; j < NUMBER_OF_MODES; j++) {
 				if (pins[i].capability[j].supported) {
-					DBG_PORT.printf("  Mode: %s, resolution: %d", mode2string(j).c_str(), pins[i].capability[j].resolution);
+					DBG_PORT.printf("  Mode: %d = %s, resolution: %d", j, mode2string(j).c_str(), pins[i].capability[j].resolution);
 					if (j == ANALOG) {
 						DBG_PORT.printf(", analog channel: %d\n", pins[i].analogChannel);
 					}	else DBG_PORT.println();

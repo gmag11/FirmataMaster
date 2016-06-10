@@ -119,14 +119,14 @@ class FirmataClientClass
 	 boolean parsingSysex = false; // Command being received is sysex
 	 int sysexBytesRead; // Number of bytes read on current sysex command
 
-	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	 // Pin state store
+	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; 
 	 int digitalInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	 int analogInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	 int pinModes[MAX_PINS];
+	 int pinModes[MAX_PINS]; 
 	 int analogChannel[MAX_ANALOG_PINS];
-	 //int pinMode[MAX_PINS];
-
+	 
 	 int majorVersion = 0;
 	 int minorVersion = 0;
 	 String firmware = "";
