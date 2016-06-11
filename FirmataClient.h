@@ -20,7 +20,7 @@
 #define DEBUG_PINS
 #define DEBUG_SYSEX
 //#define DEBUG_PROTOCOL_BYTES
-//#define DEBUG_CAPABILITIES //Show pin capabilities over DBG_PORT
+#define DEBUG_CAPABILITIES //Show pin capabilities over DBG_PORT
 #endif
 #define DBG_PORT Serial1
 
