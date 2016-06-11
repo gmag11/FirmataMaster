@@ -53,7 +53,7 @@ void FirmataClientClass::begin(Stream &stream)
 int FirmataClientClass::digitalRead(int pin) {
 	int value = (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
 #ifdef DEBUG_DIGITAL
-	DBG_PORT.printf("-DigitalRead: pin %d value %d\n", pin, value);
+	DBG_PORT.printf("-DigitalRead: pin %d value %d\r\n", pin, value);
 #endif // DEBUG_DIGITAL	
 	return value;
 }
@@ -85,7 +85,7 @@ static void checkStream(FirmataClientClass* firmata) {
 */
 void FirmataClientClass::digitalWrite(int pin, int value) {
 #ifdef DEBUG_DIGITAL
-	DBG_PORT.printf("-Digital Write: pin %d value %d\n", pin, value);
+	DBG_PORT.printf("-Digital Write: pin %d value %d\r\n", pin, value);
 #endif // DEBUG_DIGITAL	
 	int portNumber = (pin >> 3) & 0x0F;
 
@@ -102,7 +102,7 @@ void FirmataClientClass::digitalWrite(int pin, int value) {
 void FirmataClientClass::pinMode(int pin, int mode)
 {
 #ifdef DEBUG_PINS
-	DBG_PORT.printf("-Pin mode: pin %d mode %d\n", pin, mode);
+	DBG_PORT.printf("-Pin mode: pin %d mode %d\r\n", pin, mode);
 #endif // DEBUG_PINS
 	firmataStream->write(SET_PIN_MODE);
 	firmataStream->write(pin);
@@ -111,21 +111,21 @@ void FirmataClientClass::pinMode(int pin, int mode)
 
 void FirmataClientClass::setDigitalInputs(int portNumber, int portData) {
 #ifdef DEBUG_DIGITAL
-	DBG_PORT.printf("-Set digital inputs: port %d data %x\n", portNumber, portData);
+	DBG_PORT.printf("-Set digital inputs: port %d data %x\r\n", portNumber, portData);
 #endif // DEBUG_DIGITAL
 	digitalInputData[portNumber] = portData;
 }
 
 void FirmataClientClass::setAnalogInput(int pin, int value) {
 #ifdef DEBUG_ANALOG
-	//DBG_PORT.printf("-Set analog inputs: pin %d value %d\n", pin, value);
+	//DBG_PORT.printf("-Set analog inputs: pin %d value %d\r\n", pin, value);
 #endif // DEBUG_ANALOG	
 	analogInputData[pin] = value;
 }
 
 void FirmataClientClass::setSamplingInterval(int interval) {
 #ifdef DEBUG_PINS
-	DBG_PORT.printf("Set sampling interval at %d\n", interval);
+	DBG_PORT.printf("Set sampling interval at %d\r\n", interval);
 #endif // DEBUG_PINS
 	firmataStream->write(START_SYSEX);
 	firmataStream->write(SAMPLING_INTERVAL);
@@ -136,7 +136,7 @@ void FirmataClientClass::setSamplingInterval(int interval) {
 
 void FirmataClientClass::setVersion(int majorVersion, int minorVersion) {
 #ifdef DEBUG_FIRMATA
-	DBG_PORT.printf("Firmata Version: %d %d\n", majorVersion, minorVersion);
+	DBG_PORT.printf("Firmata Version: %d %d\r\n", majorVersion, minorVersion);
 #endif //DEBUG_FIRMATA
 	this->majorVersion = majorVersion;
 	this->minorVersion = minorVersion;
@@ -144,7 +144,7 @@ void FirmataClientClass::setVersion(int majorVersion, int minorVersion) {
 
 void FirmataClientClass::queryCapabilities() {
 #ifdef DEBUG_FIRMATA_PINS
-	DBG_PORT.print("Query capabilities\n");
+	DBG_PORT.print("Query capabilities\r\n");
 #endif // DEBUG_FIRMATA_PINS
 	firmataStream->write(START_SYSEX);
 	firmataStream->write(CAPABILITY_QUERY);
@@ -153,7 +153,7 @@ void FirmataClientClass::queryCapabilities() {
 
 void FirmataClientClass::queryAnalogMapping() {
 #ifdef DEBUG_ANALOG
-	DBG_PORT.print("Query analog mapping\n");
+	DBG_PORT.print("Query analog mapping\r\n");
 #endif // DEBUG_ANALOG	
 	firmataStream->write(START_SYSEX);
 	firmataStream->write(ANALOG_MAPPING_QUERY);
@@ -174,13 +174,14 @@ void FirmataClientClass::printCapabilities()
 	DBG_PORT.println(__PRETTY_FUNCTION__);
 	for (int i = 0; i < MAX_PINS; i++) {
 		if (pins[i].available){
-			DBG_PORT.printf("Pin %d modes\n", i);
+			DBG_PORT.printf("Pin %d modes\r\n", i);
 			for (int j = 0; j < NUMBER_OF_MODES; j++) {
 				if (pins[i].capability[j].supported) {
 					DBG_PORT.printf("  Mode: %d = %s, resolution: %d", j, mode2string(j).c_str(), pins[i].capability[j].resolution);
 					if (j == ANALOG) {
-						DBG_PORT.printf(", analog channel: %d\n", pins[i].analogChannel);
-					}	else DBG_PORT.println();
+						DBG_PORT.printf(", analog channel: %d", pins[i].analogChannel);
+					}
+					DBG_PORT.println();
 				}
 			}
 		}
@@ -282,7 +283,7 @@ void FirmataClientClass::processInput(int inputData) {
 			// commands in the 0xF* range don't use channel data
 		}
 #ifdef DEBUG_FIRMATA_PROTOCOL
-		//DBG_PORT.printf("Firmata command: %X %X\n", command, multiByteChannel);
+		//DBG_PORT.printf("Firmata command: %X %X\r\n", command, multiByteChannel);
 #endif // DEBUG_FIRMATA_PROTOCOL
 		switch (command) {
 			case DIGITAL_MESSAGE:
@@ -321,12 +322,12 @@ void FirmataClientClass::processSysexMessage() {
 	//    for (int i = 0; i < storedInputData.length; i++) System.out.print(storedInputData[i] + " ");
 	//    System.out.println("]");
 #ifdef DEBUG_SYSEX
-	DBG_PORT.printf("Process SysEx: SE Command: %X\n", storedInputData[0]);
+	DBG_PORT.printf("Process SysEx: SE Command: %X\r\n", storedInputData[0]);
 #endif // DEBUG_SYSEX
 	switch (storedInputData[0]) { //first byte in buffer is command
       case CAPABILITY_RESPONSE:
 #ifdef DEBUG_SYSEX
-		  DBG_PORT.print("Capability response\n");
+		  DBG_PORT.print("Capability response\r\n");
 #endif // DEBUG_SYSEX
 #ifdef DEBUG_CAPABILITIES
 		  gotCapabilities = true;
@@ -369,7 +370,7 @@ void FirmataClientClass::processSysexMessage() {
         break;
 	case ANALOG_MAPPING_RESPONSE:
 #ifdef DEBUG_SYSEX
-		DBG_PORT.print("Analog mapping response\n");
+		DBG_PORT.print("Analog mapping response\r\n");
 #endif // DEBUG_SYSEX
 		for (int pin = 0; pin < MAX_ANALOG_PINS; pin++) {
 			analogChannel[pin] = 127;
@@ -400,8 +401,8 @@ void FirmataClientClass::processSysexMessage() {
 			firmware.concat((char)storedInputData[i]);
 		}
 #ifdef DEBUG_SYSEX
-		DBG_PORT.printf("SysEx bytes read: %d\n", sysexBytesRead);
-		DBG_PORT.printf("Firmware: %s\n", firmware.c_str());
+		DBG_PORT.printf("SysEx bytes read: %d\r\n", sysexBytesRead);
+		DBG_PORT.printf("Firmware: %s\r\n", firmware.c_str());
 #endif //DEBUG_SYSEX		
 	}
 }
