@@ -11,18 +11,19 @@
 
 #include <Ticker.h>
 
-#define DEBUG_FIRMATA_MASTER
+// DEBUG options
+//#define DEBUG_FIRMATA_MASTER // Global DEBUG control
 #ifdef DEBUG_FIRMATA_MASTER
 //#define DEBUG_FIRMATA
 //#define DEBUG_FIRMATA_PROTOCOL
 //#define DEBUG_ANALOG
-#define DEBUG_DIGITAL
-#define DEBUG_PINS
+//#define DEBUG_DIGITAL
+//#define DEBUG_PINS
 #define DEBUG_SYSEX
 //#define DEBUG_PROTOCOL_BYTES
-#define DEBUG_CAPABILITIES //Show pin capabilities over DBG_PORT
+//#define DEBUG_CAPABILITIES //Show pin capabilities over DBG_PORT
 #endif
-#define DBG_PORT Serial1
+#define DBG_PORT Serial1 // Debug serial port
 
 
 // pin modes definition
@@ -107,6 +108,8 @@ typedef struct {
 class FirmataClientClass
 {
  protected:
+	 Stream *firmataStream; // Stream for data sending and receiving
+
 #ifdef DEBUG_CAPABILITIES
 	 bool gotCapabilities = false; // Client has received info about Firmata board cababilities
 	 pin pins[MAX_PINS]; // Pins description store
@@ -114,52 +117,159 @@ class FirmataClientClass
 
 	 int waitForData = 0; // Is client waiting for more data?
 	 int executeMultiByteCommand = 0; // Number of current command remaining bytes to receive
-	 int multiByteChannel = 0; 
+	 int multiByteChannel = 0; // Is current message multibyte?
 	 int storedInputData[MAX_DATA_BYTES]; // Command buffer
 	 boolean parsingSysex = false; // Command being received is sysex
 	 int sysexBytesRead; // Number of bytes read on current sysex command
 
 	 // Pin state store
-	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; 
+	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };  
 	 int digitalInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	 int analogInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	 int pinModes[MAX_PINS]; 
-	 int analogChannel[MAX_ANALOG_PINS];
+	 int pinModes[MAX_PINS]; // Store for pin modes
+	 int analogChannel[MAX_ANALOG_PINS]; // Store for analog mapping
 	 
+	 // Firmare version and name
 	 int majorVersion = 0;
 	 int minorVersion = 0;
-	 String firmware = "";
-	 
-	 Stream *firmataStream;
+	 char firmwareName[40];
 
+	 /**
+	 * Stores digital input data locally
+	 *
+	 * @param[in] Port that has been read.
+	 * @param[in] Bitmask with info about pin state.
+	 */
 	 void setDigitalInputs(int portNumber, int portData);
+
+	 /**
+	 * Stores analog input data locally
+	 *
+	 * @param[in] Pin that has been read.
+	 * @param[in] Value to store.
+	 */
 	 void setAnalogInput(int pin, int value);
+
+	 /**
+	 * Stores version of Firmata board
+	 *
+	 * @param[in] Major version.
+	 * @param[in] Minor version.
+	 */
 	 void setVersion(int majorVersion, int minorVersion);
+
+	 /**
+	 * Processes stored SysEx received message
+	 */
 	 void processSysexMessage();
+
+	 /**
+	 * Process a byte received from Firmata board
+	 *
+	 * Param[in] Received byte
+	 */
 	 void processInput(int inputData);
 
+	 /**
+	 * Sends capabilities query to Firmata board.
+	 */
 	 void queryCapabilities();
+
+	 /**
+	 * Sends analog mapping query to Firmata board.
+	 */
 	 void queryAnalogMapping();
-	 
+
 	 Ticker tk;
 
  public:
 	bool checkingStream = false;
 
+	/**
+	* Empty constructor.
+	*/
 	FirmataClientClass();
+
+	/**
+	* Starts Firmata client attached to a Stream object.
+	* @param[in] Stream to use to connect to Firmata slave.
+	*/
 	void begin(Stream &stream);
+
+	/**
+	* Returns the last known value read from the digital pin: HIGH or LOW.
+	*
+	* @param[in] pin the digital pin whose value should be returned. Firmata slave should control if pin mode allows data to be read.
+	* @param[out] Value of read pin: HIGH or LOW
+	*/
 	int digitalRead(int pin);
+
+	/**
+	* Checks stream for input data
+	*
+	* @param[out] true if data is waiting ro be read
+	*/
 	bool getStreamAvailable();
-	//static void checkStream(FirmataClientClass firmata);
+
+	/**
+	* Write to a digital pin (the pin must have been put into output mode with
+	* pinMode()).
+	*
+	* @param[in] pin to write to.
+	* @param[in] value to write: Arduino.LOW or Arduino.HIGH
+	*/
 	void digitalWrite(int pin, int value);
+
+	/**
+	* Send pin mode request. No answer is expected
+	*
+	* @param[in] pin to write to.
+	* @param[in] mode to configure pin
+	*/
 	void pinMode(int pin, int mode);
+
+	/**
+	* Configure analog and i2c data sampling interval
+	*
+	* @param[in] Interval in miliseconds.
+	*/
 	void setSamplingInterval(int interval);
+
+	/**
+	* Stores Firmware name of Firmata board.
+	* TODO: BUG: Firmware name assignment triggers an exception.
+	*
+	* @param[in] Firmware name.
+	*/
+	void setFirmwareName(const char * name);
+
+	/**
+	* Sends firmware version query to Firmata board.
+	*/
+	void queryFirmware();
+
+	/**
+	* Sends reset query to Firmata board.
+	*/
+	void reset();
 	
+	/**
+	* Read input stream and process data
+	*/
 	void handleData();
 
 #ifdef DEBUG_CAPABILITIES
+	/**
+	* Gets all pins capabilities as an array of pins. For debugging only
+	*
+	* Param[out] Pointer to pin array
+	*/
 	pin* getStoredCapabilities();
+
+	/**
+	* Sends pin configuration to Debug serial port. For debugging only
+	*/
 	void printCapabilities();
 #endif // DEBUG_CAPABILITIES
 };

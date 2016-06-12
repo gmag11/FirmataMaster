@@ -1,14 +1,8 @@
-//#include <TimeAlarms.h>
 #include <Ticker.h>
-//#include <SoftwareSerial.h>
-#include <SoftwareSerial.h>
 #include "FirmataClient.h"
+//#include <espsoftwareserial\SoftwareSerial.h>
 
-
-
-//#include "FirmataArduino.h"
-
-//SoftwareSerial sserial(12,13,false,1024U);
+//SoftwareSerial sserial(12,13); // SoftSerial port does not work reliablily
 
 void setup()
 {
@@ -17,23 +11,23 @@ void setup()
 	Serial1.println();
 	//sserial.begin(57600);
 	//sserial.flush();
-	
+		
 	delay(2000);
 
-	FirmataClient.begin(Serial);
-	FirmataClient.pinMode(13, OUTPUT);
+	FirmataClient.begin(Serial); // Start Firmata communication
+	
+	FirmataClient.pinMode(13, OUTPUT); // Enable builtin LED in Arduino UNO
 
 #ifdef DEBUG_CAPABILITIES
-	FirmataClient.printCapabilities();
+	FirmataClient.printCapabilities(); // Check board capabilities
 #endif // DEBUG_CAPABILITIES
 }
 
 void loop()
 {
+	// Flash LED every 2 seconds
 	FirmataClient.digitalWrite(13, HIGH);
 	delay(2000);
 	FirmataClient.digitalWrite(13, LOW);
 	delay(2000);
-  /* add main program code here */
-
 }
