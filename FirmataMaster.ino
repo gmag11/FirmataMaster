@@ -26,8 +26,10 @@ void setup()
 void loop()
 {
 	// Flash LED every 2 seconds
+#ifdef FIRMATA_DIGITAL_OUTPUT_SUPPORT
 	FirmataClient.digitalWrite(13, HIGH);
 	delay(2000);
 	FirmataClient.digitalWrite(13, LOW);
 	delay(2000);
+#endif // FIRMATA_DIGITAL_OUTPUT_SUPPORT
 }

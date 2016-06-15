@@ -30,9 +30,10 @@ void FirmataClientClass::begin(Stream &stream)
 
 	reset(); // Send reset to firmata board
 	delay(1000);
-	//queryFirmware(); // Check firmware to ensure a Firmata Board is connected
+	//queryFirmware(); // TODO: Check firmware to ensure a Firmata Board is connected
 	delay(3000); // Wait for response
 
+	// Query pin state
 	// enable all ports; firmware should ignore non-existent ones
 	for (int i = 0; i < MAX_PORTS; i++) {
 		firmataStream->write(REPORT_DIGITAL | i);
@@ -44,7 +45,7 @@ void FirmataClientClass::begin(Stream &stream)
 	queryCapabilities(); //Query Firmata capabilities
 
 	delay(1000);
-#ifdef DO_REPORT_ANALOG
+#if defined(DO_REPORT_ANALOG) && defined(FIRMATA_ANALOG_INPUT_SUPPORT)
 	queryAnalogMapping(); // Query analog inputs mapping
 	delay(1000);
 
@@ -57,6 +58,7 @@ void FirmataClientClass::begin(Stream &stream)
 
 }
 
+#ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
 /**
 * Returns the last known value read from the digital pin: HIGH or LOW.
 *
@@ -70,6 +72,7 @@ int FirmataClientClass::digitalRead(int pin) {
 #endif // DEBUG_DIGITAL	
 	return value;
 }
+#endif //FIRMATA_DIGITAL_INPUT_SUPPORT
 
 /**
 * Checks stream for input data
@@ -98,6 +101,7 @@ static void checkStream(FirmataClientClass* firmata) {
 	}
 }
 
+#ifdef FIRMATA_DIGITAL_OUTPUT_SUPPORT
 /**
 * Write to a digital pin (the pin must have been put into output mode with
 * pinMode()).
@@ -122,6 +126,26 @@ void FirmataClientClass::digitalWrite(int pin, int value) {
 	firmataStream->write(digitalOutputData[portNumber] & 0x7F);
 	firmataStream->write(digitalOutputData[portNumber] >> 7);
 }
+#endif // FIRMATA_DIGITAL_OUTPUT_SUPPORT
+
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
+int FirmataClientClass::analogRead(int pin)
+{
+	if (pin <= 0 && pin < 16)
+		return analogInputData[pin];
+	else
+		return -1;
+}
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
+
+#ifdef FIRMATA_PWM_OUTPUT_SUPPORT
+void FirmataClientClass::analogWrite(int pin, int value) {
+	pinMode(pin, PWM);
+	firmataStream->write(ANALOG_MESSAGE | (pin & 0x0F));
+	firmataStream->write(value & 0x7F);
+	firmataStream->write(value >> 7);
+}
+#endif // FIRMATA_PWM_OUTPUT_SUPPORT
 
 /**
 * Send pin mode request. No answer is expected
@@ -139,6 +163,7 @@ void FirmataClientClass::pinMode(int pin, int mode)
 	firmataStream->write(mode);
 }
 
+#ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
 /**
 * Stores digital input data locally
 *
@@ -151,8 +176,9 @@ void FirmataClientClass::setDigitalInputs(int portNumber, int portData) {
 #endif // DEBUG_DIGITAL
 	digitalInputData[portNumber] = portData;
 }
+#endif // FIRMATA_DIGITAL_INPUT_SUPPORT
 
-
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
 /**
 * Stores analog input data locally
 *
@@ -165,6 +191,7 @@ void FirmataClientClass::setAnalogInput(int pin, int value) {
 #endif // DEBUG_ANALOG	
 	analogInputData[pin] = value;
 }
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
 
 /**
 * Configure analog and i2c data sampling interval
@@ -238,6 +265,7 @@ void FirmataClientClass::queryCapabilities() {
 	firmataStream->write(END_SYSEX);
 }
 
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
 /**
 * Sends analog mapping query to Firmata board.
 */
@@ -249,6 +277,7 @@ void FirmataClientClass::queryAnalogMapping() {
 	firmataStream->write(ANALOG_MAPPING_QUERY);
 	firmataStream->write(END_SYSEX);
 }
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
 
 /**
 * Sends reset query to Firmata board.
@@ -373,18 +402,24 @@ void FirmataClientClass::processInput(int inputData) {
 		if (executeMultiByteCommand != 0 && waitForData == 0) { // If message has been received completely
 			//we got everything
 			switch (executeMultiByteCommand) {
+#ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
 			case DIGITAL_MESSAGE: // Store digital input data
+#endif // FIRMATA_DIGITAL_INPUT_SUPPORT
 #ifdef DEBUG_DIGITAL
 				DBG_PORT.println("DIGITAL MESSAGE");
 #endif // DEBUG_DIGITAL	
+#ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
 				setDigitalInputs(multiByteChannel, (storedInputData[0] << 7) + storedInputData[1]); 
 				break;
+#endif // FIRMATA_DIGITAL_INPUT_SUPPORT
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
 			case ANALOG_MESSAGE: // Store analog input data
 #ifdef DEBUG_ANALOG
 				DBG_PORT.println("ANALOG MESSAGE");
 #endif // DEBUG_ANALOG
 				setAnalogInput(multiByteChannel, (storedInputData[0] << 7) + storedInputData[1]);
 				break;
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
 			case REPORT_VERSION: // Store firmware version
 #ifdef DEBUG_FIRMATA
 				DBG_PORT.println("REPORT VERSION");
@@ -498,6 +533,7 @@ void FirmataClientClass::processSysexMessage() {
           }
         }
         break;
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
 	case ANALOG_MAPPING_RESPONSE:
 #ifdef DEBUG_SYSEX
 		DBG_PORT.print("Analog mapping response\r\n");
@@ -525,6 +561,7 @@ void FirmataClientClass::processSysexMessage() {
 		}
 #endif // DO_REPORT_ANALOG
 		break;
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
 	case REPORT_FIRMWARE:
 		//DBG_PORT.print("Report Firmware ");
 		//DBG_PORT.println(sysexBytesRead);
@@ -541,7 +578,7 @@ void FirmataClientClass::processSysexMessage() {
 #endif //DEBUG_SYSEX
 
 		setFirmwareName(temp.c_str()); // Store firmware name
-		
+		break;
 	}
 }
 

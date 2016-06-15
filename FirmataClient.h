@@ -12,7 +12,7 @@
 #include <Ticker.h>
 
 // DEBUG options
-//#define DEBUG_FIRMATA_MASTER // Global DEBUG control
+#define DEBUG_FIRMATA_MASTER // Global DEBUG control
 #ifdef DEBUG_FIRMATA_MASTER
 //#define DEBUG_FIRMATA
 //#define DEBUG_FIRMATA_PROTOCOL
@@ -24,6 +24,13 @@
 //#define DEBUG_CAPABILITIES //Show pin capabilities over DBG_PORT
 #endif
 #define DBG_PORT Serial1 // Debug serial port
+
+
+// Firmata pin modes support. Comment uneeded ones. Does not improove memory so much :-(
+#define FIRMATA_DIGITAL_INPUT_SUPPORT
+#define FIRMATA_DIGITAL_OUTPUT_SUPPORT
+#define FIRMATA_ANALOG_INPUT_SUPPORT
+#define FIRMATA_PWM_OUTPUT_SUPPORT
 
 
 // pin modes definition
@@ -123,18 +130,28 @@ class FirmataClientClass
 	 int sysexBytesRead; // Number of bytes read on current sysex command
 
 	 // Pin state store
-	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };  
+#ifdef FIRMATA_DIGITAL_OUTPUT_SUPPORT
+	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+#endif // FIRMATA_DIGITAL_OUTPUT_SUPPORT
+
+#ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
 	 int digitalInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+#endif // FIRMATA_DIGITAL_INPUT_SUPPORT
+
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
 	 int analogInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	 int pinModes[MAX_PINS]; // Store for pin modes
 	 int analogChannel[MAX_ANALOG_PINS]; // Store for analog mapping
-	 
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
+
+	 int pinModes[MAX_PINS]; // Store for pin modes
+
 	 // Firmare version and name
 	 int majorVersion = 0;
 	 int minorVersion = 0;
 	 char firmwareName[40];
 
+#ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
 	 /**
 	 * Stores digital input data locally
 	 *
@@ -142,7 +159,9 @@ class FirmataClientClass
 	 * @param[in] Bitmask with info about pin state.
 	 */
 	 void setDigitalInputs(int portNumber, int portData);
+#endif // FIRMATA_DIGITAL_INPUT_SUPPORT
 
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
 	 /**
 	 * Stores analog input data locally
 	 *
@@ -150,6 +169,7 @@ class FirmataClientClass
 	 * @param[in] Value to store.
 	 */
 	 void setAnalogInput(int pin, int value);
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
 
 	 /**
 	 * Stores version of Firmata board
@@ -176,10 +196,12 @@ class FirmataClientClass
 	 */
 	 void queryCapabilities();
 
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
 	 /**
 	 * Sends analog mapping query to Firmata board.
 	 */
 	 void queryAnalogMapping();
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
 
 	 Ticker tk;
 
@@ -197,21 +219,18 @@ class FirmataClientClass
 	*/
 	void begin(Stream &stream);
 
+#ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
 	/**
 	* Returns the last known value read from the digital pin: HIGH or LOW.
 	*
-	* @param[in] pin the digital pin whose value should be returned. Firmata slave should control if pin mode allows data to be read.
+	* @param[in] pin the digital pin whose value should be returned. Firmata slave should control 
+	* if pin mode allows data to be read.
 	* @param[out] Value of read pin: HIGH or LOW
 	*/
 	int digitalRead(int pin);
+#endif // FIRMATA_DIGITAL_INPUT_SUPPORT
 
-	/**
-	* Checks stream for input data
-	*
-	* @param[out] true if data is waiting ro be read
-	*/
-	bool getStreamAvailable();
-
+#ifdef FIRMATA_DIGITAL_OUTPUT_SUPPORT
 	/**
 	* Write to a digital pin (the pin must have been put into output mode with
 	* pinMode()).
@@ -220,6 +239,28 @@ class FirmataClientClass
 	* @param[in] value to write: Arduino.LOW or Arduino.HIGH
 	*/
 	void digitalWrite(int pin, int value);
+#endif // FIRMATA_DIGITAL_OUTPUT_SUPPORT
+
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT
+	/**
+	* Returns the last known value read from the analog pin.
+	*
+	* @param[in] the analog pin whose value should be returned. Firmata slave should control if 
+	* pin mode allows analog data to be read. Pin should be one of the analog mapped ports.
+	* @param[out] Value of read pin. From 0 to 1023
+	*/
+	int analogRead(int pin);
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
+
+#ifdef FIRMATA_PWM_OUTPUT_SUPPORT
+	/**
+	* Write an analog value (PWM-wave) to a digital pin.
+	*
+	* @param[in] the pin to write to (must support hardware pwm)
+	* @param[in] the value: 0 being the lowest (always off), and 255 the highest (always on)
+	*/
+	void analogWrite(int pin, int value);
+#endif // FIRMATA_PWM_OUTPUT_SUPPORT
 
 	/**
 	* Send pin mode request. No answer is expected
@@ -253,7 +294,14 @@ class FirmataClientClass
 	* Sends reset query to Firmata board.
 	*/
 	void reset();
-	
+
+	/**
+	* Checks stream for input data
+	*
+	* @param[out] true if data is waiting ro be read
+	*/
+	bool getStreamAvailable();
+
 	/**
 	* Read input stream and process data
 	*/
