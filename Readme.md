@@ -1,8 +1,8 @@
 # Firmata Client for Arduino & ESP8266
-ESP8266 is a great platform for IOT and, after the development of Arduino toolchain for it, making custom scketches beyon AT firmware has become as easy as it is with other Arduino compatible boards.
-ESP8266 performs faster and has more RAM and flash. But Arduino wins in number of input and outputs. 
+ESP8266 is a great platform for IOT and, after the development of Arduino toolchain for it, making custom scketches beyond factory AT firmware has become as easy as it is with other Arduino compatible boards.
+ESP8266 performs faster and has more RAM and flash. But Arduino wins in number of input and outputs, specially in analog inputs.
 
-In projects where a higher number of digital and analog pins are needed makers normally prefer using Arduino or use an input/output extension via I2C.
+In projects where a high number of digital and analog pins are needed makers normally prefer using Arduino or use an input/output extension via I2C.
 
 Firmata is a protocol that allows using Arduino pins from external systems like a Raspberry Pi or a computer using languages like C#, Python, Javascript or Processing, among others.
 
