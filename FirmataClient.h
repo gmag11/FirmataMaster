@@ -12,13 +12,13 @@
 #include <Ticker.h>
 
 // DEBUG options
-#define DEBUG_FIRMATA_MASTER // Global DEBUG control
+//#define DEBUG_FIRMATA_MASTER // Global DEBUG control
 #ifdef DEBUG_FIRMATA_MASTER
-//#define DEBUG_FIRMATA
-//#define DEBUG_FIRMATA_PROTOCOL
-//#define DEBUG_ANALOG
-//#define DEBUG_DIGITAL
-//#define DEBUG_PINS
+#define DEBUG_FIRMATA
+#define DEBUG_FIRMATA_PROTOCOL
+#define DEBUG_ANALOG
+#define DEBUG_DIGITAL
+#define DEBUG_PINS
 #define DEBUG_SYSEX
 //#define DEBUG_PROTOCOL_BYTES
 //#define DEBUG_CAPABILITIES //Show pin capabilities over DBG_PORT
