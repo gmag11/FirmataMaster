@@ -27,9 +27,9 @@ int FirmataClientClass::digitalRead(int pin) {
 * @param[in] Bitmask with info about pin state.
 */
 void FirmataClientClass::setDigitalInputs(int portNumber, int portData) {
-#ifdef DEBUG_DIGITAL
+#ifdef DEBUG_DIGITAL_INPUT
 	DBG_PORT.printf("-Set digital inputs: port %d data %x\r\n", portNumber, portData);
-#endif // DEBUG_DIGITAL
+#endif // DEBUG_DIGITAL_INPUT
 	digitalInputData[portNumber] = portData;
 }
 #endif // FIRMATA_DIGITAL_INPUT_SUPPORT

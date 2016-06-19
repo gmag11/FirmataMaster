@@ -16,12 +16,14 @@
 #ifdef DEBUG_FIRMATA_MASTER
 #define DEBUG_FIRMATA
 #define DEBUG_FIRMATA_PROTOCOL
-#define DEBUG_ANALOG
-#define DEBUG_DIGITAL
+#define DEBUG_ANALOG_INPUT
+#define DEBUG_PWM_OUTPUT
+#define DEBUG_DIGITAL_INPUT
+#define DEBUG_DIGITAL_OUTPUT
 #define DEBUG_PINS
 #define DEBUG_SYSEX
 //#define DEBUG_PROTOCOL_BYTES
-//#define DEBUG_CAPABILITIES //Show pin capabilities over DBG_PORT
+//#define DEBUG_CAPABILITIES //Show pin capabilitover DBG_PORT
 #endif
 #define DBG_PORT Serial1 // Debug serial port
 
@@ -112,6 +114,11 @@ typedef struct {
 } pin;
 #endif // DEBUG_CAPABILITIES
 
+typedef struct {
+	int majorVersion = 0;
+	int minorVersion = 0;
+} version;
+
 class FirmataClientClass
 {
  protected:
@@ -131,15 +138,15 @@ class FirmataClientClass
 
 	 // Pin state store
 #ifdef FIRMATA_DIGITAL_OUTPUT_SUPPORT
-	 int digitalOutputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	 int digitalOutputData[MAX_PORTS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 #endif // FIRMATA_DIGITAL_OUTPUT_SUPPORT
 
 #ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
-	 int digitalInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	 int digitalInputData[MAX_PORTS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 #endif // FIRMATA_DIGITAL_INPUT_SUPPORT
 
 #ifdef FIRMATA_ANALOG_INPUT_SUPPORT
-	 int analogInputData[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	 int analogInputData[MAX_ANALOG_PINS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	 int analogChannel[MAX_ANALOG_PINS]; // Store for analog mapping
 #endif // FIRMATA_ANALOG_INPUT_SUPPORT
@@ -147,9 +154,9 @@ class FirmataClientClass
 	 int pinModes[MAX_PINS]; // Store for pin modes
 
 	 // Firmare version and name
-	 int majorVersion = 0;
-	 int minorVersion = 0;
-	 char firmwareName[40];
+	 version firmataProtocolVersion;
+	 version firmataFirmwareVersion;
+	 String firmwareName = "";
 
 #ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
 	 /**
@@ -177,7 +184,7 @@ class FirmataClientClass
 	 * @param[in] Major version.
 	 * @param[in] Minor version.
 	 */
-	 void setVersion(int majorVersion, int minorVersion);
+	 void setVersion(version *ver, int majorVersion, int minorVersion);
 
 	 /**
 	 * Processes stored SysEx received message
@@ -283,12 +290,57 @@ class FirmataClientClass
 	*
 	* @param[in] Firmware name.
 	*/
-	void setFirmwareName(const char * name);
+	void setFirmwareName(String name);
+
+	/**
+	* Returns Firmware name of Firmata board.
+	*
+	* @param[out] Firmware name.
+	*/
+	String getFirmwareName() {
+		return firmwareName;
+	}
+
+	/**
+	* Returns Firmware version of Firmata board.
+	*
+	* @param[out] Firmware version.
+	*/
+	String getFirmwareVersion() {
+		String temp = "";
+		temp += firmataFirmwareVersion.majorVersion;
+		temp += ".";
+		temp += firmataFirmwareVersion.minorVersion;
+		return temp;
+	}
+
+	/**
+	* Returns protocol version of Firmata board.
+	*
+	* @param[out] Firmware version.
+	*/
+	String getFirmataProtocolVersion() {
+		String temp = "";
+		temp += firmataProtocolVersion.majorVersion;
+		temp += ".";
+		temp += firmataProtocolVersion.minorVersion;
+		return temp;
+	}
 
 	/**
 	* Sends firmware version query to Firmata board.
 	*/
 	void queryFirmware();
+
+	/**
+	* Sends protocol version query to Firmata board.
+	*/
+	void queryProtocol() {
+#ifdef DEBUG_FIRMATA
+		DBG_PORT.print("Query protocol version\r\n");
+#endif // DEBUG_FIRMATA
+		firmataStream->write(REPORT_VERSION);
+	}
 
 	/**
 	* Sends reset query to Firmata board.

@@ -14,9 +14,9 @@
 * @param[in] value to write: Arduino.LOW or Arduino.HIGH
 */
 void FirmataClientClass::digitalWrite(int pin, int value) {
-#ifdef DEBUG_DIGITAL
+#ifdef DEBUG_DIGITAL_OUTPUT
 	DBG_PORT.printf("-Digital Write: pin %d value %d\r\n", pin, value);
-#endif // DEBUG_DIGITAL	
+#endif // DEBUG_DIGITAL_OUTPUT	
 	int portNumber = (pin >> 3) & 0x0F; // Get port corresponding to pin
 
 										// Set bit corresponding to pin to 0 or 1
