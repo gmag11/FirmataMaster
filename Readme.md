@@ -12,12 +12,15 @@ Why not use Firmata to drive an Arduino from ESP8266 to use its input/output cap
 Firmata was first developed to use a serial link between master (client) and slave (server), but any Stream object can be used as transmission medium for this protocol. This includes a TCP or UDP connection over WiFi. In this case Firmata master and slave can be hundreds kilometers far appart.
 
 Firmata is a well known and tested protocol. It is currently evolving to support more pin capabilities beyond digital and analog input/output, like I2C, 1-Wire, Serial, stepper motor, etc. You can read info on [https://github.com/firmata/protocol/blob/master/README.md](https://github.com/firmata/protocol/blob/master/README.md)
+
 ##Wiring ESP8266 and Arduino
 TODO
+
 ##Using Firmata
 ### Setting up Arduino
 ### Using the library
 ### Enabling debugging
+
 ## Supported Firmata capabilities
 FirmataMaster has been designed as a counterpart of [ConfigurableFirmata](https://github.com/firmata/ConfigurableFirmata) library. Therefore, there is the intetion to develop all capabilities that ConfigurableFirmata implements:
 - **Analog input** Already implemented, not working yet
@@ -34,5 +37,6 @@ FirmataMaster has been designed as a counterpart of [ConfigurableFirmata](https:
 - **~~Tone~~** TODO
 Development of capabilities will be done as I need them for my projects. If you need an specific capability that is not already implemented you may ask for it in issue tracker or make a pull request with your development.
 I'd like, at some point, to migrate to the same plugin structure that ConfigurableFirmata uses, but current main focus is make digital an analog I/O working fine.
+
 ## Examples
 TODO
