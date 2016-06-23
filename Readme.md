@@ -9,7 +9,7 @@ In projects where a high number of digital and analog pins are needed makers nor
 
 Why not use Firmata to drive an Arduino from ESP8266 to use its input/output capabilities as it was local ones?.
 
-Firmata was first developed to use a serial link between master (client) and slave (server), but any Stream object can be used as transmission medium for this protocol. This includes a TCP or UDP connection over WiFi. In this case Firmata master and slave can be hundreds kilometers far appart.
+Firmata was first developed to use a serial link between master (client) and slave (server), but any Stream object can be used as transmission medium for this protocol. This includes a TCP or UDP connection over WiFi. In this case Firmata master and slave can be hundreds kilometers far appart. There is some limitation on using Software Serial ports. See more details in "Using library" down below.
 
 Firmata is a well known and tested protocol. It is currently evolving to support more pin capabilities beyond digital and analog input/output, like I2C, 1-Wire, Serial, stepper motor, etc. You can read info on [https://github.com/firmata/protocol/blob/master/README.md](https://github.com/firmata/protocol/blob/master/README.md)
 
@@ -18,8 +18,17 @@ TODO
 
 ##Using Firmata
 ### Setting up Arduino
+You need to flash a Firmata firmware on Arduino. Up to now, to develop FirmataMaster, I'm had [ConfigurableFirmata example](https://github.com/firmata/ConfigurableFirmata/tree/master/examples/ConfigurableFirmata) loaded on my Arduino Uno. If you plan to use Firmata using an IP TCP or UDP stream, you may try [another example](https://github.com/firmata/ConfigurableFirmata/tree/master/examples/ConfigurableFirmataWiFi) in Configurable Firmata GitHub repository. Although this has not been tested yet. I will be so pleased if you do that test and give me some feedback.
+
 ### Using the library
+Library has been designed to be as similar to programming directly in arduino as possible. Main methods are named the same way that they are in Arduino SDK.
+You need to add `#include <FirmataMaster.h>` first.
+During setup stage, your scketch should create a Stream object like Serial, TCP client, UDP client or any other that inherits Stream class so it implements methods like `available()`, `write()` and `read()`.
+All Stream initialization is responsability of your scketch as it is the task to do reconnections in case of a disconnection as it may happen using IP transport. I plan to add some example code. Any help is wellcome :-).
+After that you can use any
+
 ### Enabling debugging
+TODO
 
 ## Supported Firmata capabilities
 FirmataMaster has been designed as a counterpart of [ConfigurableFirmata](https://github.com/firmata/ConfigurableFirmata) library. Therefore, there is the intetion to develop all capabilities that ConfigurableFirmata implements:
