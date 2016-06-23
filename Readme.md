@@ -35,6 +35,7 @@ FirmataMaster has been designed as a counterpart of [ConfigurableFirmata](https:
 - **~~I2C~~** TODO
 - **~~Scheduling tasks~~** TODO
 - **~~Tone~~** TODO
+
 Development of capabilities will be done as I need them for my projects. If you need an specific capability that is not already implemented you may ask for it in issue tracker or make a pull request with your development.
 I'd like, at some point, to migrate to the same plugin structure that ConfigurableFirmata uses, but current main focus is make digital an analog I/O working fine.
 
