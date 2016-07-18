@@ -85,7 +85,7 @@ static String mode2string(int mode) {
 		return ("Serial");
 		break;
 	case PULLUP:
-		return ("PULLUP");
+		return ("PullUp");
 		break;
 	default:
 		return ("Mode not implemented");

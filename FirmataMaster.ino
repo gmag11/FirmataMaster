@@ -42,7 +42,16 @@ void loop()
 	delay(2000);
 	FirmataClient.digitalWrite(13, LOW);
 	delay(2000);
-	DBG_PORT.printf("A1: %d", FirmataClient.analogRead(1));
-	delay(1000);
 #endif // FIRMATA_DIGITAL_OUTPUT_SUPPORT
+
+#ifdef FIRMATA_ANALOG_INPUT_SUPPORT	
+	float voltage0 = (float)FirmataClient.analogRead(0) * (5.0 / 1023);
+	float voltage1 = (float)FirmataClient.analogRead(1) * (5.0 / 1023);
+	float voltage2 = (float)FirmataClient.analogRead(2) * (5.0 / 1023);
+	DBG_PORT.printf("A0: %4.3f V\r\n", voltage0);
+	DBG_PORT.printf("A1: %4.3f V\r\n", voltage1);
+	DBG_PORT.printf("A2: %4.3f V\r\n", voltage2);
+#endif // FIRMATA_ANALOG_INPUT_SUPPORT
+	delay(100);
+
 }
