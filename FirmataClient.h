@@ -14,14 +14,14 @@
 // DEBUG options
 //#define DEBUG_FIRMATA_MASTER // Global DEBUG control
 #ifdef DEBUG_FIRMATA_MASTER
-#define DEBUG_FIRMATA
-#define DEBUG_FIRMATA_PROTOCOL
-#define DEBUG_ANALOG_INPUT
-#define DEBUG_PWM_OUTPUT
-#define DEBUG_DIGITAL_INPUT
-#define DEBUG_DIGITAL_OUTPUT
-#define DEBUG_PINS
-#define DEBUG_SYSEX
+//#define DEBUG_FIRMATA
+//#define DEBUG_FIRMATA_PROTOCOL
+//#define DEBUG_ANALOG_INPUT
+//#define DEBUG_PWM_OUTPUT
+//#define DEBUG_DIGITAL_INPUT
+//#define DEBUG_DIGITAL_OUTPUT
+//#define DEBUG_PINS
+//#define DEBUG_SYSEX
 //#define DEBUG_PROTOCOL_BYTES
 //#define DEBUG_CAPABILITIES //Show pin capabilit over DBG_PORT. Enable only if necessary as it consumes a lot of RAM space
 #endif
