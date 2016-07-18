@@ -8,7 +8,7 @@
 #ifdef FIRMATA_ANALOG_INPUT_SUPPORT
 int FirmataClientClass::analogRead(int pin)
 {
-	if (pin <= 0 && pin < MAX_ANALOG_PINS)
+	if (pin >= 0 && pin < MAX_ANALOG_PINS)
 		return analogInputData[pin];
 	else
 		return -1;
@@ -21,9 +21,9 @@ int FirmataClientClass::analogRead(int pin)
 * @param[in] Value to store.
 */
 void FirmataClientClass::setAnalogInput(int pin, int value) {
-//#ifdef DEBUG_ANALOG_INPUT
+#ifdef DEBUG_ANALOG_INPUT
 	DBG_PORT.printf("-Set analog inputs: pin %d value %d\r\n", pin, value);
-//#endif // DEBUG_ANALOG_INPUT	
+#endif // DEBUG_ANALOG_INPUT	
 	analogInputData[pin] = value;
 }
 
