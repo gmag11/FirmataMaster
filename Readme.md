@@ -32,8 +32,8 @@ TODO
 
 ## Supported Firmata capabilities
 FirmataMaster has been designed as a counterpart of [ConfigurableFirmata](https://github.com/firmata/ConfigurableFirmata) library. Therefore, there is the intetion to develop all capabilities that ConfigurableFirmata implements:
-- **Analog input** Already implemented, not working yet
-- **Analog output** Already implemented, not tested yet
+- **Analog input** Already implemented
+- **Analog (PWM) output** Already implemented, not tested yet
 - **Digital input** Already implemented
 - **Digital output** Already implemented
 - **~~Serial ports~~** TODO
