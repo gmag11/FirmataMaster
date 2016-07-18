@@ -22,18 +22,38 @@ You need to flash a Firmata firmware on Arduino. Up to now, to develop FirmataMa
 
 ### Using the library
 Library has been designed to be as similar to programming directly in arduino as possible. Main methods are named the same way that they are in Arduino SDK.
-You need to add `#include <FirmataMaster.h>` first.
+Library needs to be copied to your Arduino `library` folder
+You need to add `#include <FirmataMaster.h>` in your scketch first.
 During setup stage, your scketch should create a Stream object like Serial, TCP client, UDP client or any other that inherits Stream class so it implements methods like `available()`, `write()` and `read()`.
 All Stream initialization is responsability of your scketch as it is the task to do reconnections in case of a disconnection as it may happen using IP transport. I plan to add some example code. Any help is wellcome :-).
-After that you can use any
+After that you can use any pin on Arduino remotely.
 
 ### Enabling debugging
-TODO
+There are some debug directives that are commented by default:
+```Arduino
+// DEBUG options
+#define DEBUG_FIRMATA_MASTER // Global DEBUG control
+#ifdef DEBUG_FIRMATA_MASTER
+//#define DEBUG_FIRMATA
+//#define DEBUG_FIRMATA_PROTOCOL
+//#define DEBUG_ANALOG_INPUT
+//#define DEBUG_PWM_OUTPUT
+//#define DEBUG_DIGITAL_INPUT
+//#define DEBUG_DIGITAL_OUTPUT
+//#define DEBUG_PINS
+//#define DEBUG_SYSEX
+//#define DEBUG_PROTOCOL_BYTES
+//#define DEBUG_CAPABILITIES //Show pin capabilit over DBG_PORT. Enable only if necessary as it consumes a lot of RAM space
+#endif
+```
+You are free to enable any debug capability to dump debug info to any stream (Serial1 by default).
+**Important:** Notice that some of them may throw a considerable amount of data that may affect interrupts and cause watchdog to reboot ESP board.
+
 
 ## Supported Firmata capabilities
 FirmataMaster has been designed as a counterpart of [ConfigurableFirmata](https://github.com/firmata/ConfigurableFirmata) library. Therefore, there is the intetion to develop all capabilities that ConfigurableFirmata implements:
 - **Analog input** Already implemented
-- **Analog (PWM) output** Already implemented, not tested yet
+- **Analog (PWM) output** Already implemented
 - **Digital input** Already implemented
 - **Digital output** Already implemented
 - **~~Serial ports~~** TODO
