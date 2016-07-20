@@ -25,7 +25,7 @@
 //#define DEBUG_PROTOCOL_BYTES
 //#define DEBUG_CAPABILITIES //Show pin capabilit over DBG_PORT. Enable only if necessary as it consumes a lot of RAM space
 #endif
-#define DBG_PORT Serial1 // Debug serial port
+#define DBG_PORT Serial // Debug serial port
 
 
 // Firmata pin modes support. Comment uneeded ones. Does not improove memory so much :-(

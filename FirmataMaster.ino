@@ -1,30 +1,61 @@
+#include <WiFiUdp.h>
+#include <WiFiServer.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
+#include <ESP8266WiFiType.h>
+#include <ESP8266WiFiSTA.h>
+#include <ESP8266WiFiScan.h>
+#include <ESP8266WiFiMulti.h>
+#include <ESP8266WiFiGeneric.h>
+#include <ESP8266WiFiAP.h>
+#include <ESP8266WiFi.h>
 #include <Ticker.h>
 #include "FirmataClient.h"
 
-//#define DIGITAL_OUTPUT_TEST
+#define DIGITAL_OUTPUT_TEST
 //#define DIGITAL_INPUT_TEST
-//#define ANALOG_INPUT_TEST
-#define PWM_OUTPUT_TEST
+#define ANALOG_INPUT_TEST
+//#define PWM_OUTPUT_TEST
 
 //#include <espsoftwareserial\SoftwareSerial.h>
 
 //SoftwareSerial sserial(12,13); // SoftSerial port does not work reliablily
+WiFiClient firmataRemoteBoard;
 
 void setup()
 {
-	pinMode(14, OUTPUT);
-	digitalWrite(14, HIGH);
-	Serial.begin(57600);
-	Serial.swap();
-	Serial1.begin(115200);
-	Serial1.println();
+	//IPAddress ipadd(192,168,4,1);
+
+	//pinMode(14, OUTPUT);
+	//digitalWrite(14, HIGH);
+	Serial.begin(115200);
+	//Serial.swap();
+	//Serial1.begin(115200);
+	Serial.println();
 	//sserial.begin(57600);
 	//sserial.flush();
-		
-	
+	WiFi.mode(WIFI_STA);
+	WiFi.begin("ESP_0D9D00", "12345678");
+	while (WiFi.status()!=WL_CONNECTED)
+	{
+		DBG_PORT.print(".");
+		delay(1000);
+	}
+	DBG_PORT.println();
+	DBG_PORT.printf("IP address: %s\r\n", WiFi.localIP().toString().c_str());
+	if (!firmataRemoteBoard.connect("192.168.4.1", 23)) {
+		DBG_PORT.println("connection failed");
+		return;
+	}
+	/*while (!firmataRemoteBoard.connected())
+	{
+		DBG_PORT.print("+");
+		delay(1000);
+	}*/
+	DBG_PORT.printf("Connection status: %d\r\n",firmataRemoteBoard.status());
 	delay(2000);
 
-	FirmataClient.begin(Serial); // Start Firmata communication
+	FirmataClient.begin(firmataRemoteBoard); // Start Firmata communication
 
 	FirmataClient.setSamplingInterval(1000);
 #ifdef DIGITAL_OUTPUT_TEST
