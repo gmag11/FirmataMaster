@@ -25,10 +25,10 @@ void FirmataClientClass::begin(Stream &stream)
 	tk.attach_ms(20, checkStream, this);
 
 	reset(); // Send reset to firmata board
-	delay(1000);
+	delay(200);
 	queryProtocol();
 	queryFirmware(); // TODO: Check firmware to ensure a Firmata Board is connected
-	delay(3000); // Wait for response
+	delay(300); // Wait for response
 
 
 #ifdef FIRMATA_DIGITAL_INPUT_SUPPORT
