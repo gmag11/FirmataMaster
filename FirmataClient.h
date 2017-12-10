@@ -22,6 +22,7 @@
 //#define DEBUG_DIGITAL_OUTPUT
 //#define DEBUG_PINS
 //#define DEBUG_SYSEX
+//#define DEBUG_SERIAL_FEATURE
 //#define DEBUG_PROTOCOL_BYTES
 //#define DEBUG_CAPABILITIES //Show pin capabilit over DBG_PORT. Enable only if necessary as it consumes a lot of RAM space
 #endif
@@ -33,6 +34,7 @@
 #define FIRMATA_DIGITAL_OUTPUT_SUPPORT
 #define FIRMATA_ANALOG_INPUT_SUPPORT
 #define FIRMATA_PWM_OUTPUT_SUPPORT
+#define FIRMATA_SERIAL_SUPPORT
 
 
 // pin modes definition
@@ -98,6 +100,30 @@
 #define SYSEX_NON_REALTIME		0x7E // MIDI Reserved for non-realtime messages
 #define SYSEX_REALTIME			0x7F // MIDI Reserved for realtime messages
 
+// Serial port Ids
+#define HW_SERIAL0                  0x00
+#define HW_SERIAL1                  0x01
+#define HW_SERIAL2                  0x02
+#define HW_SERIAL3                  0x03
+// extensible up to 0x07
+
+#define SW_SERIAL0                  0x08
+#define SW_SERIAL1                  0x09
+#define SW_SERIAL2                  0x0A
+#define SW_SERIAL3                  0x0B
+// extensible up to 0x0F
+
+#define MAX_SERIAL_PORTS            8
+
+//SERIAL_MESSAGE commmands
+#define SERIAL_CONFIG               0x10
+#define SERIAL_WRITE                0x20
+#define SERIAL_READ                 0x30
+#define SERIAL_REPLY                0x40
+#define SERIAL_CLOSE                0x50
+#define SERIAL_FLUSH                0x60
+#define SERIAL_LISTEN               0x70
+
 #ifdef DEBUG_CAPABILITIES
 
 // Represents one pin single capability
@@ -118,6 +144,13 @@ typedef struct {
 	int majorVersion = 0;
 	int minorVersion = 0;
 } version;
+
+#ifdef FIRMATA_SERIAL_SUPPORT
+class FirmataSerialReplyReader {
+public:
+  virtual void readReply(const byte buff[], int size) = 0;
+};
+#endif
 
 class FirmataClientClass
 {
@@ -150,6 +183,10 @@ class FirmataClientClass
 
 	 int analogChannel[MAX_ANALOG_PINS]; // Store for analog mapping
 #endif // FIRMATA_ANALOG_INPUT_SUPPORT
+
+#ifdef FIRMATA_SERIAL_SUPPORT
+	 FirmataSerialReplyReader* replyReaders[MAX_SERIAL_PORTS] = {NULL};
+#endif
 
 	 int pinModes[MAX_PINS]; // Store for pin modes
 
@@ -276,6 +313,66 @@ class FirmataClientClass
 	* @param[in] mode to configure pin
 	*/
 	void pinMode(int pin, int mode);
+
+#ifdef FIRMATA_SERIAL_SUPPORT
+	/**
+	 * Asks the Arduino to configure a hardware or serial port.
+	 *   @param[in] portId The serial port to use (HW_SERIAL1, HW_SERIAL2, HW_SERIAL3, SW_SERIAL0,
+	 *   SW_SERIAL1, SW_SERIAL2, SW_SERIAL3)
+	 *   @param[in] baud The baud rate of the serial port
+	 *   @param[in] rxPin [SW Serial only] The RX pin of the SoftwareSerial instance
+	 *   @param[in] txPin [SW Serial only] The TX pin of the SoftwareSerial instance
+	 */
+	void serialConfig(int portId, long baud, int rxPin = -1, int txPin = -1);
+
+	/**
+	 * Write an array of bytes to the specified serial port.
+	 * @param[in] portId The serial port to write to.
+   * @param[in] inBytes An array of bytes to write to the serial port.
+   * @param[in] size of array
+	 */
+	void serialWrite(int portId, const byte inBytes[], int size);
+
+	/**
+	 * Read contents of serial buffer and send to Firmata client (send with SERIAL_REPLY).
+	 * @param[in] portId The serial port to start reading continuously.
+	 * @param[in] maxBytesToRead The maximum number of bytes to read per iteration.
+	 * If there are less bytes in the buffer, the lesser number of bytes will be returned. A value of 0
+	 * indicates that all available bytes in the buffer should be read.
+	 * @param[in] replayReader An implemetation to call when we have received the bytes.
+	 */
+	void serialRead(int portId, int maxBytesToRead, FirmataSerialReplyReader *replayReader);
+
+	/**
+	 * Stop continuous reading of the specified serial port. This does not close the port, it stops
+	 * reading it but keeps the port open.
+	 * @param[in] portId The serial port to stop reading.
+	 */
+	void serialStop(int portId);
+
+	/**
+	 * Close the specified serial port.
+	 * @param[in] portId The serial port to close.
+	 */
+	void serialClose(int portId);
+
+	/**
+	 * Flush the specified serial port. For hardware serial, this waits for the transmission of
+	 * outgoing serial data to complete. For software serial, this removed any buffered incoming serial
+	 * data.
+	 * @param[in] portId The serial port to flush.
+	 */
+	void serialFlush(int portId);
+
+	/**
+	 * For SoftwareSerial only. Only a single SoftwareSerial instance can read data at a time.
+	 * Call this method to set this port to be the reading port in the case there are multiple
+	 * SoftwareSerial instances.
+	 * @param[in] portId The serial port to listen on.
+	 */
+  void serialListen(int portId);
+
+#endif // FIRMATA_SERIAL_SUPPORT
 
 	/**
 	* Configure analog and i2c data sampling interval

@@ -366,6 +366,24 @@ void FirmataClientClass::processSysexMessage() {
 #endif // DO_REPORT_ANALOG
 		break;
 #endif // FIRMATA_ANALOG_INPUT_SUPPORT
+#ifdef FIRMATA_SERIAL_SUPPORT
+    case SERIAL_MESSAGE:
+#ifdef DEBUG_SERIAL_FEATURE
+      DBG_PORT.println("SERIAL MESSAGE");
+#endif
+#endif
+      {
+        int portId = (storedInputData[1] & 0x0F);
+        if (replyReaders[portId] != NULL) {
+          byte buff[MAX_DATA_BYTES/2];
+          int l = 0;
+          for (int i = 2; i < sysexBytesRead - 1; i += 2) {
+            buff[l++] = storedInputData[i] | (storedInputData[i + 1] << 7);
+          }
+          replyReaders[portId]->readReply(buff, l);
+        }
+      }
+      break;
 	case REPORT_FIRMWARE:
 #ifdef DEBUG_SYSEX
 		DBG_PORT.print("Report Firmware\r\n");
