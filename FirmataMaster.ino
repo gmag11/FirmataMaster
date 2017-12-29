@@ -1,14 +1,22 @@
 #include <Ticker.h>
 #include "FirmataClient.h"
 
-//#define DIGITAL_OUTPUT_TEST
+#define DIGITAL_OUTPUT_TEST
 //#define DIGITAL_INPUT_TEST
 //#define ANALOG_INPUT_TEST
-#define PWM_OUTPUT_TEST
+//#define PWM_OUTPUT_TEST
+//#define SERIAL_FEATURE_TEST
 
 //#include <espsoftwareserial\SoftwareSerial.h>
 
 //SoftwareSerial sserial(12,13); // SoftSerial port does not work reliablily
+
+#ifdef SERIAL_FEATURE_TEST
+#include "FirmataSerial.h"
+FirmataSerial SerialF(&FirmataClient, HW_SERIAL0);
+//FirmataSerial SerialF(&FirmataClient, SW_SERIAL0, 6, 7);
+#define DBG_PORT SerialF
+#endif
 
 void setup()
 {
@@ -27,6 +35,9 @@ void setup()
 	FirmataClient.begin(Serial); // Start Firmata communication
 
 	FirmataClient.setSamplingInterval(1000);
+#ifdef SERIAL_FEATURE_TEST
+  SerialF.begin(115200);
+#endif
 #ifdef DIGITAL_OUTPUT_TEST
 	FirmataClient.pinMode(13, OUTPUT); // Enable builtin LED in Arduino UNO
 #endif // DIGITAL_OUTPUT_TEST
@@ -81,6 +92,15 @@ void loop()
 	}
 #endif // PWM_OUTPUT_TEST
 #endif // FIRMATA_PWM_OUTPUT_SUPPORT
+
+#ifdef FIRMATA_SERIAL_SUPPORT
+#ifdef SERIAL_FEATURE_TEST
+  while (SerialF.available()) {
+    DBG_PORT.write(SerialF.read());
+  }
+#endif // SERIAL_FEATURE_TEST
+#endif // FIRMATA_SERIAL_SUPPORT
+  
 	delay(100);
 
 }
