@@ -57,7 +57,7 @@
 #define LOW		0 // Constant to write a low value to a pin (in a call to digitalWrite())
 
 // Firmata basic definitions
-#define MAX_DATA_BYTES 4096
+#define MAX_DATA_BYTES 64
 #define MAX_PINS 128
 #define MAX_PORTS 16
 #define MAX_ANALOG_PINS 16
